@@ -58,9 +58,13 @@ jobs:
           
           atomic_operator = AtomicOperator()
           atomic_operator.get_atomics()
+          
+          targeted_techniques = ${{ github.event.inputs.atomic_test }}
+          if not isinstance(targeted_techniques, list):
+            targeted_techniques = [targeted_techniques]
 
           response = atomic_operator.run(
-            techniques=${{ github.event.inputs.atomic_test }}
+            techniques=targeted_techniques
           )
           if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as f:
