@@ -15,6 +15,7 @@ on:
       test_guids:
         type: array
         description: One or more test GUIDS defined within an Atomic test.
+        default: ''
       os_name:
         description: The operating system name to run the test on.
         default: windows-latest # can be custom name but other options are 'ubuntu-latest' & 'macos-latest'
@@ -68,12 +69,13 @@ jobs:
           atomic_operator = AtomicOperator()
           atomic_operator.get_atomics()
           
-          test_guids = []
-          test_guids = ${{ github.event.inputs.test_guids }} or []
+          test_guids = ${{ github.event.inputs.test_guids }}
+          if not isinstance(test_guids, list):
+            test_guids = []
 
           response = atomic_operator.run(
             techniques=${{ github.event.inputs.atomic_test }},
-            test_guids=test_guids if test_guids else []
+            test_guids=test_guids
           )
           if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as f:
