@@ -59,7 +59,7 @@ jobs:
           atomic_operator = AtomicOperator()
           atomic_operator.get_atomics()
           
-          targeted_techniques = ${{ github.event.inputs.atomic_test }}
+          targeted_techniques = "${{ github.event.inputs.atomic_test }}"
           if not isinstance(targeted_techniques, list):
             targeted_techniques = [targeted_techniques]
 
