@@ -68,6 +68,7 @@ jobs:
           atomic_operator = AtomicOperator()
           atomic_operator.get_atomics()
           
+          test_guids = []
           test_guids = ${{ github.event.inputs.test_guids }}
 
           response = atomic_operator.run(
