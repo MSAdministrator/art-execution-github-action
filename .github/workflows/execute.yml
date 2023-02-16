@@ -69,7 +69,7 @@ jobs:
           atomic_operator.get_atomics()
           
           test_guids = []
-          test_guids = ${{ github.event.inputs.test_guids }}
+          test_guids = ${{ github.event.inputs.test_guids }} or []
 
           response = atomic_operator.run(
             techniques=${{ github.event.inputs.atomic_test }},
