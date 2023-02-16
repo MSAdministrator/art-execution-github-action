@@ -67,10 +67,12 @@ jobs:
           
           atomic_operator = AtomicOperator()
           atomic_operator.get_atomics()
+          
+          test_guids = ${{ github.event.inputs.test_guids }}
 
           response = atomic_operator.run(
             techniques=${{ github.event.inputs.atomic_test }},
-            test_guids=${{ github.event.inputs.test_guids }}
+            test_guids=test_guids if test_guids else []
           )
           if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as f:
