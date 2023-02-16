@@ -54,6 +54,7 @@ jobs:
         id: run-atomic-operator
         shell: python
         run: |
+          import os
           from atomic_operator import AtomicOperator
           
           atomic_operator = AtomicOperator()
