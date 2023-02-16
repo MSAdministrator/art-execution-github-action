@@ -37,12 +37,6 @@ jobs:
         run: |
           pip install pip
           pip --version
-
-  install:
-    name: Installing ${{ github.event.inputs.framework }}
-    needs: [setup]
-    runs-on: ${{ github.event.inputs.os_name }}
-    steps:
       - name: Installing ${{ github.event.inputs.framework }}
         if: github.event.inputs.framework == 'atomic-operator'
         run: |
@@ -54,11 +48,7 @@ jobs:
         run: |
           IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing)
           Install-AtomicRedTeam -getAtomics -Force
-  run:
-    name: Executing ${{ github.event.inputs.framework }}
-    needs: [install]
-    runs-on: ${{ github.event.inputs.os_name }}
-    steps:
+
       - name: Execute Test
         if:  github.event.inputs.framework == 'atomic-operator'
         id: run-atomic-operator
