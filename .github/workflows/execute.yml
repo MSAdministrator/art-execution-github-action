@@ -1,0 +1,114 @@
+name: Execute Atomic Red Team Tests
+
+on:
+  schedule:
+    - cron: "0 21 * * *"
+
+inputs:
+  atomic_test:
+    description: The technique or sub-technique of a defined Atomic test.
+  test_guids:
+    description: One or more test GUIDS defined within an Atomic test.
+  os_name:
+    description: The operating system name to run the test on.
+    default: windows-latest
+ 
+jobs:
+  setup:
+    name: Setup ${{ matrix.framework }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: "ubuntu-latest", framework: "atomic-operator", python: "3.9" }
+          - { os: "windows-latest", framework: "invoke-atomicredteam" }
+          - { os: "macos-latest", framework: "atomic-operator", python: "3.9" }
+    env:
+      NOXSESSION: ${{ matrix.session }}
+      FORCE_COLOR: "1"
+      PRE_COMMIT_COLOR: "always"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+    
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Upgrade pip
+        run: |
+          pip install pip
+          pip --version
+
+      - name: Installing ${{ matrix.framework }}
+        run: |
+          pip install atomic-operator --upgrade
+        if: matrix.framework == 'atomic-operator'
+
+      - name: Installing ${{ matrix.framework }}
+        shell: pwsh
+        run: |
+          IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing)
+          Install-AtomicRedTeam -getAtomics -Force
+        if: matrix.framework == 'invoke-atomicredteam'
+
+      - name: Upload coverage data
+        if: always() && matrix.session == 'tests'
+        uses: "actions/upload-artifact@v3"
+        with:
+          name: coverage-data
+          path: ".coverage.*"
+
+      - name: Upload documentation
+        if: matrix.session == 'docs-build'
+        uses: actions/upload-artifact@v3
+        with:
+          name: docs
+          path: docs/_build
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade pip
+        run: |
+          pip install --constraint=.github/workflows/constraints.txt pip
+          pip --version
+
+      - name: Install Poetry
+        run: |
+          pipx install --pip-args=--constraint=.github/workflows/constraints.txt poetry
+          poetry --version
+
+      - name: Install Nox
+        run: |
+          pipx install --pip-args=--constraint=.github/workflows/constraints.txt nox
+          pipx inject --pip-args=--constraint=.github/workflows/constraints.txt nox nox-poetry
+          nox --version
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-data
+
+      - name: Combine coverage data and display human readable report
+        run: |
+          nox --session=coverage
+
+      - name: Create coverage report
+        run: |
+          nox --session=coverage -- xml
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3.1.1
