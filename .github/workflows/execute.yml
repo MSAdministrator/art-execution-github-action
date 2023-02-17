@@ -80,6 +80,7 @@ jobs:
         id: run-invoke-atomic-red-team
         shell: pwsh
         run: |
+          Get-Module -name Invoke-AtomicRedTeam | Import-Module 
           $response = Invoke-AtomicTest "${{ github.event.inputs.atomic_test }}"
           write-host $response
   
